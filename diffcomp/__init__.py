@@ -78,6 +78,10 @@ def limiter_gain(
         - rt: :math:`(B,)`.
 
     """
+    assert torch.all(threshold <= 0)
+    assert torch.all(at > 0) and torch.all(at < 1)
+    assert torch.all(rt > 0) and torch.all(rt < 1)
+
     zi = x.new_zeros(x.shape[0])
     lt = db2amp(threshold)
     x_peak = compressor_core(x.abs(), zi, rt, at)
