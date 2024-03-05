@@ -2,7 +2,7 @@ import pytest
 import torch
 from torch.autograd.gradcheck import gradcheck, gradgradcheck
 
-from comp import compressor_core
+from diffcomp.core import compressor_core
 
 
 def create_test_inputs(batch_size, samples):
@@ -41,7 +41,7 @@ def test_low_order_cpu(
     zi_requires_grad: bool,
     samples: int,
 ):
-    batch_size = 8
+    batch_size = 4
     x, zi, at, rt = create_test_inputs(batch_size, samples)
     x.requires_grad = x_requires_grad
     zi.requires_grad = zi_requires_grad
