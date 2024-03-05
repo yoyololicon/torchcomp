@@ -86,5 +86,4 @@ def limiter_gain(
     lt = db2amp(threshold)
     x_peak = compressor_core(x.abs(), zi, rt, at)
     f = F.relu(1 - lt / x_peak).neg() + 1
-    g = compressor_core(f, zi, at, rt)
-    return g
+    return compressor_core(f, zi, at, rt)
