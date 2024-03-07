@@ -2,14 +2,14 @@ import pytest
 import torch
 from torch.autograd.gradcheck import gradcheck, gradgradcheck
 
-from diffcomp.core import compressor_core
+from torchcomp.core import compressor_core
 
 
 def create_test_inputs(batch_size, samples):
     x = torch.rand(batch_size, samples).double()
     zi = torch.rand(batch_size).double()
-    at = torch.rand(batch_size).double() * 0.2 + 0.5
-    rt = torch.rand(batch_size).double() * 0.1 + 0.8
+    at = torch.rand(batch_size).double()
+    rt = torch.rand(batch_size).double()
 
     return x, zi, at, rt
 
