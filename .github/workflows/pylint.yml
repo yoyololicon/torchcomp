@@ -19,7 +19,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install pylint
         pip install numpy numba
-        pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+        pip install torch --index-url https://download.pytorch.org/whl/cpu
+        pip install torchlpc
     - name: Analysing the code with pylint
       run: |
         pylint $(git ls-files '*.py')
