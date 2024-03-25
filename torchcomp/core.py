@@ -3,9 +3,42 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Function
 import numpy as np
-from numba import njit, prange
+from numba import njit, prange, cuda
 from typing import Tuple, Any, Optional, Callable
 from torchlpc import sample_wise_lpc
+
+
+@cuda.jit
+def compressor_cuda_kernel(
+    x: np.ndarray,
+    zi: np.ndarray,
+    at: np.ndarray,
+    rt: np.ndarray,
+    y: np.ndarray,
+    at_mask: np.ndarray,
+    B: int,
+    T: int,
+) -> Tuple[np.ndarray, np.ndarray]:
+    b = cuda.blockIdx.x
+    i = cuda.threadIdx.x
+
+    if b >= B or i > 0:
+        return
+
+    g = zi[b]
+    at_b = at[b]
+    rt_b = rt[b]
+    for t in range(T):
+        f = x[b, t]
+        if f < g:
+            coeff = at_b
+            at_mask[b, t] = 1
+        else:
+            coeff = rt_b
+            at_mask[b, t] = 0
+        g *= 1 - coeff
+        g += coeff * f
+        y[b, t] = g
 
 
 @njit(parallel=True)
@@ -36,19 +69,47 @@ def compressor_kernel(
     return y, at_mask
 
 
+def compressor_cuda(
+    x: torch.Tensor, zi: torch.Tensor, at: torch.Tensor, rt: torch.Tensor
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    B, T = x.shape
+    y = torch.empty_like(x)
+    at_mask = torch.zeros_like(x, dtype=torch.uint8)
+
+    threads_per_block = 1
+    blocks_per_grid = B
+
+    compressor_cuda_kernel[blocks_per_grid, threads_per_block](
+        cuda.as_cuda_array(x),
+        cuda.as_cuda_array(zi),
+        cuda.as_cuda_array(at),
+        cuda.as_cuda_array(rt),
+        cuda.as_cuda_array(y),
+        cuda.as_cuda_array(at_mask),
+        B,
+        T,
+    )
+    return y, at_mask.bool()
+
+
 class CompressorFunction(Function):
     @staticmethod
     def forward(
         ctx: Any, x: torch.Tensor, zi: torch.Tensor, at: torch.Tensor, rt: torch.Tensor
     ) -> torch.Tensor:
-        y, at_mask = compressor_kernel(
-            x.detach().cpu().numpy(),
-            zi.detach().cpu().numpy(),
-            at.detach().cpu().numpy(),
-            rt.detach().cpu().numpy(),
-        )
-        y = torch.from_numpy(y).to(x.device)
-        at_mask = torch.from_numpy(at_mask).to(x.device)
+        if x.is_cuda:
+            y, at_mask = compressor_cuda(
+                x.detach(), zi.detach(), at.detach(), rt.detach()
+            )
+        else:
+            y, at_mask = compressor_kernel(
+                x.detach().cpu().numpy(),
+                zi.detach().cpu().numpy(),
+                at.detach().cpu().numpy(),
+                rt.detach().cpu().numpy(),
+            )
+            y = torch.from_numpy(y).to(x.device)
+            at_mask = torch.from_numpy(at_mask).to(x.device)
         ctx.save_for_backward(x, y, zi, at, rt, at_mask)
         return y
 
