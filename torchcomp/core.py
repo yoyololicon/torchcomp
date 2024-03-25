@@ -35,7 +35,6 @@ def compressor_cuda_kernel(
             at_mask[b, t] = 1
         else:
             coeff = rt_b
-            at_mask[b, t] = 0
         g *= 1 - coeff
         g += coeff * f
         y[b, t] = g
