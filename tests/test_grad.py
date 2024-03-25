@@ -34,15 +34,30 @@ def create_test_inputs(batch_size, samples):
     "samples",
     [64],
 )
+@pytest.mark.parametrize(
+    "device",
+    [
+        "cpu",
+        pytest.param(
+            "cuda",
+            marks=pytest.mark.skipif(
+                not torch.cuda.is_available(), reason="CUDA not available"
+            ),
+        ),
+    ],
+)
 def test_low_order_cpu(
     x_requires_grad: bool,
     at_requires_grad: bool,
     rt_requires_grad: bool,
     zi_requires_grad: bool,
     samples: int,
+    device: str,
 ):
     batch_size = 4
-    x, zi, at, rt = create_test_inputs(batch_size, samples)
+    x, zi, at, rt = (lambda x: tuple(xx.to(device) for xx in x))(
+        create_test_inputs(batch_size, samples)
+    )
     x.requires_grad = x_requires_grad
     zi.requires_grad = zi_requires_grad
     at.requires_grad = at_requires_grad
