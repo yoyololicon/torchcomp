@@ -52,6 +52,9 @@ $$
 
 $$
 g[n] = 10^{g_{\rm log}[n] / 20}
+$$
+
+$$
 \hat{g}[n] = \begin{rcases} \begin{dcases}
     \alpha_{\rm at} g[n] + (1 - \alpha_{\rm at}) \hat{g}[n-1] & \text{if } g[n] < g[n-1]
     \alpha_{\rm rt} g[n] + (1 - \alpha_{\rm rt}) \hat{g}[n-1] & \text{otherwise}
