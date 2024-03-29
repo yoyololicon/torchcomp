@@ -56,7 +56,7 @@ $$
 
 $$
 \hat{g}[n] = \begin{rcases} \begin{dcases}
-    \alpha_{\rm at} g[n] + (1 - \alpha_{\rm at}) \hat{g}[n-1] & \text{if } g[n] < g[n-1]
+    \alpha_{\rm at} g[n] + (1 - \alpha_{\rm at}) \hat{g}[n-1] & \text{if } g[n] < g[n-1] \\
     \alpha_{\rm rt} g[n] + (1 - \alpha_{\rm rt}) \hat{g}[n-1] & \text{otherwise}
 \end{dcases}\end{rcases}
 $$
