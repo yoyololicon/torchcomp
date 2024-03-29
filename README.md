@@ -39,13 +39,21 @@ def compexp_gain(
 ```
 
 $$
-x_{\rm rms}[n] = \alpha_{\rm rms} x^2[n] + (1 - \alpha_{\rm rms}) x_{\rm rms}[n-1] \\
-x_{\rm log}[n] = 20 \log_{10} x_{\rm rms}[n] \\
-g_{\rm log}[n] = \min\left(0, \left(1 - \frac{1}{CR}\right)\left(CT - x_{\rm log}[n]\right), \left(1 - \frac{1}{ER}\right)\left(ET - x_{\rm log}[n]\right)\right) \\
-g[n] = 10^{g_{\rm log}[n] / 20} \\
+x_{\rm rms}[n] = \alpha_{\rm rms} x^2[n] + (1 - \alpha_{\rm rms}) x_{\rm rms}[n-1]
+$$
+$$
+x_{\rm log}[n] = 20 \log_{10} x_{\rm rms}[n]
+$$
+$$
+g_{\rm log}[n] = \min\left(0, \left(1 - \frac{1}{CR}\right)\left(CT - x_{\rm log}[n]\right), \left(1 - \frac{1}{ER}\right)\left(ET - x_{\rm log}[n]\right)\right)
+$$
+$$
+g[n] = 10^{g_{\rm log}[n] / 20}
 \hat{g}[n] = \begin{rcases} \begin{dcases}
-    \alpha_{\rm at} g[n] + (1 - \alpha_{\rm at}) \hat{g}[n-1] & \text{if } g[n] < g[n-1] \\
+    \alpha_{\rm at} g[n] + (1 - \alpha_{\rm at}) \hat{g}[n-1] & \text{if } g[n] < g[n-1]
     \alpha_{\rm rt} g[n] + (1 - \alpha_{\rm rt}) \hat{g}[n-1] & \text{otherwise}
-\end{dcases}\end{rcases} \\
+\end{dcases}\end{rcases}
+$$
+$$
 y[n] = \hat{g}[n] x[n]
 $$
