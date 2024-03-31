@@ -188,7 +188,7 @@ graph TB
     end
     
     plus1 & plus2 --> peak
-    peak --> delay --> multATT["*(1 - AT)"] & multRTT["*(1 - RT)"]
+    peak --> delay --> multATT["*(1 - AT)"] & multRTT["*(1 - RT)"] & ifelse1
 
     peak --> amp2db[amp2db] --> neg["*(-1)"] --> plusT["+T"]
     zero & plusT --> min[Min] --> db2amp[db2amp] --> ifelse2{<}
@@ -205,7 +205,7 @@ graph TB
         end
     end
 
-    output --> delay2[z^-1] --> multATT2["*(1 - AT)"] & multRTT2["*(1 - RT)"]
+    output --> delay2[z^-1] --> multATT2["*(1 - AT)"] & multRTT2["*(1 - RT)"] & ifelse2
 
     plus3 & plus4 --> output
 ```
