@@ -88,20 +88,124 @@ graph TB
     plusET --> multES["*(1 - 1/ER)"]
     zero & multCS & multES --> min --> db2amp
 
-    db2amp & output --> ifelse{<}
+    db2amp & delay --> ifelse{<}
     output --> delay --> multATT["*(1 - AT)"] & multRTT["*(1 - RT)"]
 
     subgraph Compressor
         ifelse -->|yes| multAT["*AT"]
         subgraph Attack
-            multAT & multATT --> plus1("+")
+            multAT & multATT --> plus1(("+"))
         end
 
         ifelse -->|no| multRT["*RT"]
         subgraph Release
-            multRT & multRTT --> plus2("+")
+            multRT & multRTT --> plus2(("+"))
         end
     end
 
     plus1 & plus2 --> output
+```
+
+## Limiter gain function
+
+This function calculates the gain $g[n]$ for a limiter.
+To use it as a regular limiter, multiply the result $g[n]$ with the input signal $x[n]$.
+
+### Function signature
+
+```python
+def limiter_gain(
+    x: torch.Tensor,
+    threshold: torch.Tensor,
+    at: torch.Tensor,
+    rt: torch.Tensor,
+) -> torch.Tensor:
+    """Limiter gain function.
+    This implementation use the same attack and release time for level detection and gain smoothing.
+
+    Args:
+        x (torch.Tensor): Input signal.
+        threshold (torch.Tensor): Limiter threshold in dB.
+        at (torch.Tensor): Attack time.
+        rt (torch.Tensor): Release time.
+
+    Shape:
+        - x: :math:`(B, T)` where :math:`B` is the batch size and :math:`T` is the number of samples.
+        - threshold: :math:`(B,)` or a scalar.
+        - at: :math:`(B,)` or a scalar.
+        - rt: :math:`(B,)` or a scalar.
+
+    """
+```
+
+### Equations
+
+$$
+x_{\rm peak}[n] = \begin{rcases} \begin{dcases}
+    \alpha_{\rm at} |x[n]| + (1 - \alpha_{\rm at}) x_{\rm peak}[n-1] & \text{if } |x[n]| > x_{\rm peak}[n-1] \\
+    \alpha_{\rm rt} |x[n]| + (1 - \alpha_{\rm rt}) x_{\rm peak}[n-1] & \text{otherwise}
+\end{dcases}\end{rcases}
+$$
+
+$$
+g[n] = \min(1, \frac{10^\frac{T}{20}}{x_{\rm peak}[n]})
+$$
+
+$$
+\hat{g}[n] = \begin{rcases} \begin{dcases}
+    \alpha_{\rm at} g[n] + (1 - \alpha_{\rm at}) \hat{g}[n-1] & \text{if } g[n] < g[n-1] \\
+    \alpha_{\rm rt} g[n] + (1 - \alpha_{\rm rt}) \hat{g}[n-1] & \text{otherwise}
+\end{dcases}\end{rcases}
+$$
+
+
+### Block diagram
+
+```mermaid
+graph TB
+    input((x))
+    output((g))
+    peak((x_peak))
+    abs[abs]
+    delay[z^-1]
+    zero( 0 )
+
+    ifelse1{>}
+    ifelse2{<}
+
+    input --> abs --> ifelse1
+
+    subgraph Peak detector
+        ifelse1 -->|yes| multAT["*AT"]
+        subgraph at1 [Attack]
+            multAT & multATT --> plus1(("+"))
+        end
+
+        ifelse1 -->|no| multRT["*RT"]
+        subgraph rt1 [Release]
+            multRT & multRTT --> plus2(("+"))
+        end
+    end
+    
+    plus1 & plus2 --> peak
+    peak --> delay --> multATT["*(1 - AT)"] & multRTT["*(1 - RT)"]
+
+    peak --> amp2db[amp2db] --> neg["*(-1)"] --> plusT["+T"]
+    zero & plusT --> min[Min] --> db2amp[db2amp] --> ifelse2{<}
+
+    subgraph gain smoothing
+        ifelse2 -->|yes| multAT2["*AT"]
+        subgraph at2 [Attack]
+            multAT2 & multATT2 --> plus3(("+"))
+        end
+
+        ifelse2 -->|no| multRT2["*RT"]
+        subgraph rt2 [Release]
+            multRT2 & multRTT2 --> plus4(("+"))
+        end
+    end
+
+    output --> delay2[z^-1] --> multATT2["*(1 - AT)"] & multRTT2["*(1 - RT)"]
+
+    plus3 & plus4 --> output
 ```
