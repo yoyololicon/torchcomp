@@ -1,10 +1,17 @@
 # TorchComp
 
-Differentiable dynamic range controller for PyTorch.
+Differentiable dynamic range controller in PyTorch.
 
 
 ## Compressor/Expander gain function
-    
+
+This function calculates the gain $g[n]$ for a compressor/expander. 
+It takes the RMS of the input signal $x[n]$ and the compressor/expander parameters as input. 
+The function returns the gain $g[n]$ in linear scale.
+To use it as a regular compressor/expander, multiply the result $g[n]$ with the signal $x[n]$.
+
+### Function signature
+
 ```python   
 def compexp_gain(
     x_rms: torch.Tensor,
@@ -38,9 +45,12 @@ def compexp_gain(
     """
 ```
 
-$$
-x_{\rm rms}[n] = \alpha_{\rm rms} x^2[n] + (1 - \alpha_{\rm rms}) x_{\rm rms}[n-1]
-$$
+__Note__: 
+`x_rms` should be non-negative.
+You can calculate it using $\sqrt{x^2[n]}$ and smooth it with `avg`.
+
+
+### Equations
 
 $$
 x_{\rm log}[n] = 20 \log_{10} x_{\rm rms}[n]
@@ -61,6 +71,37 @@ $$
 \end{dcases}\end{rcases}
 $$
 
-$$
-y[n] = \hat{g}[n] x[n]
-$$
+### Block diagram
+
+```mermaid
+graph TB
+    input((x))
+    output((g))
+    amp2db[amp2db]
+    db2amp[db2amp]
+    min[Min]
+    delay[z^-1]
+    zero( 0 )
+
+    input --> amp2db --> neg["*(-1)"] --> plusCT["+CT"] & plusET["+ET"]
+    plusCT --> multCS["*(1 - 1/CR)"]
+    plusET --> multES["*(1 - 1/ER)"]
+    zero & multCS & multES --> min --> db2amp
+
+    db2amp & output --> ifelse{<}
+    output --> delay --> multATT["*(1 - AT)"] & multRTT["*(1 - RT)"]
+
+    subgraph Compressor
+        ifelse -->|yes| multAT["*AT"]
+        subgraph Attack
+            multAT & multATT --> plus1("+")
+        end
+
+        ifelse -->|no| multRT["*RT"]
+        subgraph Release
+            multRT & multRTT --> plus2("+")
+        end
+    end
+
+    plus1 & plus2 --> output
+```
