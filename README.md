@@ -231,9 +231,9 @@ def avg(rms: torch.Tensor, avg_coef: Union[torch.Tensor, float]):
 
 ### Equations
 
-$$
+```math
 \hat{x}_{\rm rms}[n] = \alpha_{\rm avg} x_{\rm rms}[n] + (1 - \alpha_{\rm avg}) \hat{x}_{\rm rms}[n-1]
-$$
+```
 
 ## TODO
 
