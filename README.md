@@ -5,7 +5,7 @@ Differentiable dynamic range controller in PyTorch.
 
 ## Compressor/Expander gain function
 
-This function calculates the gain $g[n]$ for a compressor/expander. 
+This function calculates the gain reduction $g[n]$ for a compressor/expander. 
 It takes the RMS of the input signal $x[n]$ and the compressor/expander parameters as input. 
 The function returns the gain $g[n]$ in linear scale.
 To use it as a regular compressor/expander, multiply the result $g[n]$ with the signal $x[n]$.
@@ -108,7 +108,7 @@ graph TB
 
 ## Limiter gain function
 
-This function calculates the gain $g[n]$ for a limiter.
+This function calculates the gain reduction $g[n]$ for a limiter.
 To use it as a regular limiter, multiply the result $g[n]$ with the input signal $x[n]$.
 
 ### Function signature
