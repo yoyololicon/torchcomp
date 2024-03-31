@@ -209,3 +209,35 @@ graph TB
 
     plus3 & plus4 --> output
 ```
+
+## Average filter
+
+### Function signature
+
+```python
+def avg(rms: torch.Tensor, avg_coef: Union[torch.Tensor, float]):
+    """Compute the running average of a signal.
+
+    Args:
+        rms (torch.Tensor): Input signal.
+        avg_coef (torch.Tensor): Coefficient for the average RMS.
+
+    Shape:
+        - rms: :math:`(B, T)` where :math:`B` is the batch size and :math:`T` is the number of samples.
+        - avg_coef: :math:`(B,)` or a scalar.
+
+    """
+```
+
+### Equations
+
+$$
+\hat{x}_{\rm rms}[n] = \alpha_{\rm avg} x_{\rm rms}[n] + (1 - \alpha_{\rm avg}) \hat{x}_{\rm rms}[n-1]
+$$
+
+## TODO
+
+- [x] CUDA acceleration in Numba
+- [ ] PyTorch CPP extension
+- [ ] Native CUDA extension
+- [ ] Examples
