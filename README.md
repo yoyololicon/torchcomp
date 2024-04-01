@@ -240,4 +240,5 @@ def avg(rms: torch.Tensor, avg_coef: Union[torch.Tensor, float]):
 - [x] CUDA acceleration in Numba
 - [ ] PyTorch CPP extension
 - [ ] Native CUDA extension
+- [ ] Forward mode autograd
 - [ ] Examples
