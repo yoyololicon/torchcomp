@@ -5,12 +5,69 @@ from torchaudio.functional import lfilter
 
 from .core import compressor_core
 
-__all__ = ["compexp_gain", "limiter_gain", "ms2coef", "avg"]
+__all__ = [
+    "compexp_gain",
+    "limiter_gain",
+    "ms2coef",
+    "avg",
+    "amp2db",
+    "db2amp",
+    "coef2ms",
+]
 
-amp2db = lambda x: 20 * torch.log10(x)
-db2amp = lambda x: 10 ** (x / 20)
-ms2coef = lambda ms, sr: (1 - torch.exp(-2200 / ms / sr))
-coef2ms = lambda coef, sr: -2200 / (sr * torch.log(1 - coef))
+
+def amp2db(x: torch.Tensor) -> torch.Tensor:
+    """Convert amplitude to decibels.
+
+    Args:
+        x (torch.Tensor): Input amplitude.
+
+    Returns:
+        torch.Tensor: Output decibels.
+
+    """
+    return 20 * torch.log10(x)
+
+
+def db2amp(x: torch.Tensor) -> torch.Tensor:
+    """Convert decibels to amplitude.
+
+    Args:
+        x (torch.Tensor): Input decibels.
+
+    Returns:
+        torch.Tensor: Output amplitude.
+
+    """
+    return 10 ** (x / 20)
+
+
+def ms2coef(ms: torch.Tensor, sr: int) -> torch.Tensor:
+    """Convert milliseconds to coefficient.
+
+    Args:
+        ms (torch.Tensor): Input milliseconds.
+        sr (int): Sample rate.
+
+    Returns:
+        torch.Tensor: Output coefficient.
+
+    """
+    return 1 - torch.exp(-2200 / ms / sr)
+
+
+def coef2ms(coef: torch.Tensor, sr: int) -> torch.Tensor:
+    """Convert coefficient to milliseconds.
+
+    Args:
+        coef (torch.Tensor): Input coefficient.
+        sr (int): Sample rate.
+
+    Returns:
+        torch.Tensor: Output milliseconds.
+
+    """
+    return -2200 / (sr * torch.log(1 - coef))
 
 
 def avg(rms: torch.Tensor, avg_coef: Union[torch.Tensor, float]):
