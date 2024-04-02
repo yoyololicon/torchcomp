@@ -18,7 +18,7 @@ def compressor_cuda_kernel(
     at_mask: np.ndarray,
     B: int,
     T: int,
-) -> Tuple[np.ndarray, np.ndarray]:
+):
     b = cuda.blockIdx.x
     i = cuda.threadIdx.x
 
