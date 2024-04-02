@@ -1,5 +1,4 @@
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Function
 import numpy as np
@@ -110,6 +109,14 @@ class CompressorFunction(Function):
             y = torch.from_numpy(y).to(x.device)
             at_mask = torch.from_numpy(at_mask).to(x.device)
         ctx.save_for_backward(x, y, zi, at, rt, at_mask)
+
+        # for jvp
+        ctx.x = x
+        ctx.y = y
+        ctx.zi = zi
+        ctx.at = at
+        ctx.rt = rt
+        ctx.at_mask = at_mask
         return y
 
     @staticmethod
@@ -147,6 +154,37 @@ class CompressorFunction(Function):
                 grad_rt = torch.where(~at_mask, grad_combined, 0).sum(1)
 
         return grad_x, grad_zi, grad_at, grad_rt
+
+    @staticmethod
+    def jvp(
+        ctx: Any,
+        grad_x: torch.Tensor,
+        grad_zi: torch.Tensor,
+        grad_at: torch.Tensor,
+        grad_rt: torch.Tensor,
+    ) -> torch.Tensor:
+        x, y, zi, at, rt, at_mask = ctx.x, ctx.y, ctx.zi, ctx.at, ctx.rt, ctx.at_mask
+        coeffs = torch.where(at_mask, at.unsqueeze(1), rt.unsqueeze(1))
+
+        fwd_x = 0 if grad_x is None else grad_x * coeffs
+
+        if grad_at is None and grad_rt is None:
+            fwd_combined = fwd_x
+        else:
+            grad_beta = torch.where(
+                at_mask,
+                0 if grad_at is None else grad_at.unsqueeze(1),
+                0 if grad_rt is None else grad_rt.unsqueeze(1),
+            )
+            fwd_combined = fwd_x + grad_beta * (
+                x - torch.cat([zi.unsqueeze(1), y[:, :-1]], dim=1)
+            )
+
+        return sample_wise_lpc(
+            fwd_combined,
+            coeffs.unsqueeze(2) - 1,
+            grad_zi if grad_zi is None else grad_zi.unsqueeze(1),
+        )
 
 
 compressor_core: Callable = CompressorFunction.apply
