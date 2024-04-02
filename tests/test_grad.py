@@ -63,5 +63,5 @@ def test_low_order_cpu(
     at.requires_grad = at_requires_grad
     rt.requires_grad = rt_requires_grad
 
-    assert gradcheck(compressor_core, (x, zi, at, rt))
+    assert gradcheck(compressor_core, (x, zi, at, rt), check_forward_ad=True, check_backward_ad=False)
     assert gradgradcheck(compressor_core, (x, zi, at, rt))
