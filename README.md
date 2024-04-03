@@ -2,6 +2,12 @@
 
 Differentiable dynamic range controller in PyTorch.
 
+## Installation
+
+```bash
+pip install torchcomp
+```
+
 
 ## Compressor/Expander gain function
 
