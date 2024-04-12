@@ -1,0 +1,48 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  Differentiable All-pole Filters for Time-varying Audio
+  Systems
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+authors:
+  - given-names: Chin-Yun
+    family-names: Yu
+    email: chin-yun.yu@qmul.ac.uk
+    name-particle: yoyololicon
+    affiliation: Queen Mary University of London
+    orcid: 'https://orcid.org/0000-0003-3782-2713'
+  - given-names: Christopher
+    family-names: Mitcheltree
+    email: c.mitcheltree@qmul.ac.uk
+    affiliation: Queen Mary University of London
+  - given-names: Alistair
+    family-names: Carson
+    email: alistair.carson@ed.ac.uk
+    affiliation: University of Edinburgh
+  - affiliation: University of Edinburgh
+    given-names: Stefan
+    family-names: Bilbao
+    email: sbilbao@ed.ac.uk
+  - given-names: Joshua D.
+    family-names: Reiss
+    email: joshua.reiss@qmul.ac.uk
+    affiliation: Queen Mary University of London
+  - given-names: György
+    family-names: Fazekas
+    email: george.fazekas@qmul.ac.uk
+    affiliation: Queen Mary University of London
+identifiers:
+  - type: url
+    value: 'https://arxiv.org/abs/2404.07970'
+repository-code: 'https://github.com/yoyololicon/torchcomp'
+url: 'https://diffapf.github.io/web/'
+keywords:
+  - differentiable DSP
+  - dynamic range controle
+license: MIT
+version: '0.1'
+date-released: '2024-04-11'
