@@ -13,7 +13,7 @@ license: MIT
 version: 0.1
 date-released: 2024-04-11
 preferred-citation:
-  type: article
+  type: generic
   title: "Differentiable All-pole Filters for Time-varying Audio Systems"
   authors:
   - given-names: Chin-Yun
@@ -48,5 +48,5 @@ preferred-citation:
     - type: other
       value: "arXiv:2404.07970"
       description: The ArXiv preprint of the paper
-  repository-code: "https://github.com/DiffAPF"
-  URL: "https://diffapf.github.io/web/"
+  # repository-code: "https://github.com/DiffAPF"
+  url: "https://diffapf.github.io/web/"
