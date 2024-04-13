@@ -1,0 +1,52 @@
+cff-version: 1.2.0
+title: "TorchComp: fast, efficient, and differentiable dynamic range control in PyTorch"
+message: "If you use this software, please cite it using the metadata from this file."
+authors:
+  - family-names: Yu
+    given-names: Chin-Yun
+    orcid: "https://orcid.org/0000-0003-3782-2713"
+URL: "https://github.com/yoyololicon/torchcomp"
+keywords:
+  - differentiable DSP
+  - dynamic range control
+license: MIT
+version: 0.1
+date-released: 2024-04-11
+preferred-citation:
+  type: generic
+  title: "Differentiable All-pole Filters for Time-varying Audio Systems"
+  authors:
+  - given-names: Chin-Yun
+    family-names: Yu
+    email: chin-yun.yu@qmul.ac.uk
+    affiliation: Queen Mary University of London
+    orcid: 'https://orcid.org/0000-0003-3782-2713'
+  - given-names: Christopher
+    family-names: Mitcheltree
+    email: c.mitcheltree@qmul.ac.uk
+    affiliation: Queen Mary University of London
+  - given-names: Alistair
+    family-names: Carson
+    email: alistair.carson@ed.ac.uk
+    affiliation: University of Edinburgh
+  - given-names: Stefan
+    family-names: Bilbao
+    email: sbilbao@ed.ac.uk
+    affiliation: University of Edinburgh
+  - given-names: Joshua D.
+    family-names: Reiss
+    email: joshua.reiss@qmul.ac.uk
+    affiliation: Queen Mary University of London
+  - given-names: György
+    family-names: Fazekas
+    email: george.fazekas@qmul.ac.uk
+    affiliation: Queen Mary University of London
+  status: preprint
+  month: 4
+  year: 2024
+  identifiers:
+    - type: other
+      value: "arXiv:2404.07970"
+      description: The ArXiv preprint of the paper
+  # repository-code: "https://github.com/DiffAPF"
+  url: "https://diffapf.github.io/web/"
