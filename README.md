@@ -248,3 +248,18 @@ def avg(rms: torch.Tensor, avg_coef: Union[torch.Tensor, float]):
 - [ ] Native CUDA extension
 - [x] Forward mode autograd
 - [ ] Examples
+
+## Citation
+
+If you find this repository useful in your research, please cite our work with the following BibTex entry:
+
+```bibtex
+@misc{ycy2024diffapf,
+    title={Differentiable All-pole Filters for Time-varying Audio Systems},
+    author={Chin-Yun Yu and Christopher Mitcheltree and Alistair Carson and Stefan Bilbao and Joshua D. Reiss and György Fazekas},
+    year={2024},
+    eprint={2404.07970},
+    archivePrefix={arXiv},
+    primaryClass={eess.AS}
+}
+```
