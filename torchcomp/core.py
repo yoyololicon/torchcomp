@@ -153,6 +153,19 @@ class CompressorFunction(Function):
             if ctx.needs_input_grad[3]:
                 grad_rt = torch.where(~at_mask, grad_combined, 0.0).sum(1)
 
+        if hasattr(ctx, "y"):
+            del ctx.y
+        if hasattr(ctx, "x"):
+            del ctx.x
+        if hasattr(ctx, "zi"):
+            del ctx.zi
+        if hasattr(ctx, "at"):
+            del ctx.at
+        if hasattr(ctx, "rt"):
+            del ctx.rt
+        if hasattr(ctx, "at_mask"):
+            del ctx.at_mask
+
         return grad_x, grad_zi, grad_at, grad_rt
 
     @staticmethod
@@ -180,6 +193,7 @@ class CompressorFunction(Function):
                 x - torch.cat([zi.unsqueeze(1), y[:, :-1]], dim=1)
             )
 
+        del ctx.x, ctx.y, ctx.zi, ctx.at, ctx.rt, ctx.at_mask
         return sample_wise_lpc(
             fwd_combined,
             coeffs.unsqueeze(2) - 1,
