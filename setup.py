@@ -1,7 +1,7 @@
 import setuptools
 
 NAME = "torchcomp"
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 MAINTAINER = "Chin-Yun Yu"
 EMAIL = "chin-yun.yu@qmul.ac.uk"
 
