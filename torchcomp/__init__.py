@@ -197,5 +197,5 @@ def limiter_gain(
     zi = x.new_zeros(x.shape[0])
     lt = db2amp(threshold)
     x_peak = compressor_core(x.abs(), zi, rt, at)
-    f = F.relu(1 - lt / x_peak).neg() + 1
+    f = F.relu(1 - lt[:, None] / x_peak).neg() + 1
     return compressor_core(f, torch.ones_like(zi), at, rt)
