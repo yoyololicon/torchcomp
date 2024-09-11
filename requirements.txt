@@ -1,5 +1,4 @@
 numpy
 numba
-torch
-torchaudio
+torch>=2
 torchlpc

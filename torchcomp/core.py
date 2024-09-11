@@ -18,8 +18,8 @@ def compressor_cuda_kernel(
     B: int,
     T: int,
 ):
-    b = cuda.blockIdx.x
-    i = cuda.threadIdx.x
+    b: int = cuda.blockIdx.x
+    i: int = cuda.threadIdx.x
 
     if b >= B or i > 0:
         return
@@ -93,8 +93,8 @@ def compressor_cuda(
 class CompressorFunction(Function):
     @staticmethod
     def forward(
-        ctx: Any, x: torch.Tensor, zi: torch.Tensor, at: torch.Tensor, rt: torch.Tensor
-    ) -> torch.Tensor:
+        x: torch.Tensor, zi: torch.Tensor, at: torch.Tensor, rt: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         if x.is_cuda:
             y, at_mask = compressor_cuda(
                 x.detach(), zi.detach(), at.detach(), rt.detach()
@@ -108,19 +108,21 @@ class CompressorFunction(Function):
             )
             y = torch.from_numpy(y).to(x.device)
             at_mask = torch.from_numpy(at_mask).to(x.device)
-        ctx.save_for_backward(x, y, zi, at, rt, at_mask)
-
-        # for jvp
-        ctx.x = x
-        ctx.y = y
-        ctx.zi = zi
-        ctx.at = at
-        ctx.rt = rt
-        ctx.at_mask = at_mask
-        return y
+        return y, at_mask
 
     @staticmethod
-    def backward(ctx: Any, grad_y: torch.Tensor) -> Tuple[Optional[torch.Tensor], ...]:
+    def setup_context(ctx: Any, inputs: Tuple[Any, ...], output: Any) -> Any:
+        x, zi, at, rt = inputs
+        y, at_mask = output
+        ctx.mark_non_differentiable(at_mask)
+        ctx.save_for_backward(x, y, zi, at, rt, at_mask)
+        ctx.save_for_forward(x, y, zi, at, rt, at_mask)
+        return ctx
+
+    @staticmethod
+    def backward(
+        ctx: Any, grad_y: torch.Tensor, _
+    ) -> Tuple[Optional[torch.Tensor], ...]:
         x, y, zi, at, rt, at_mask = ctx.saved_tensors
         grad_x = grad_zi = grad_at = grad_rt = None
 
@@ -153,19 +155,6 @@ class CompressorFunction(Function):
             if ctx.needs_input_grad[3]:
                 grad_rt = torch.where(~at_mask, grad_combined, 0.0).sum(1)
 
-        if hasattr(ctx, "y"):
-            del ctx.y
-        if hasattr(ctx, "x"):
-            del ctx.x
-        if hasattr(ctx, "zi"):
-            del ctx.zi
-        if hasattr(ctx, "at"):
-            del ctx.at
-        if hasattr(ctx, "rt"):
-            del ctx.rt
-        if hasattr(ctx, "at_mask"):
-            del ctx.at_mask
-
         return grad_x, grad_zi, grad_at, grad_rt
 
     @staticmethod
@@ -175,12 +164,13 @@ class CompressorFunction(Function):
         grad_zi: torch.Tensor,
         grad_at: torch.Tensor,
         grad_rt: torch.Tensor,
-    ) -> torch.Tensor:
-        x, y, zi, at, rt, at_mask = ctx.x, ctx.y, ctx.zi, ctx.at, ctx.rt, ctx.at_mask
+    ) -> Tuple[torch.Tensor, None]:
+        x, y, zi, at, rt, at_mask = ctx.saved_tensors
         coeffs = torch.where(at_mask, at.unsqueeze(1), rt.unsqueeze(1))
 
         fwd_x = 0 if grad_x is None else grad_x * coeffs
 
+        fwd_combined: torch.Tensor
         if grad_at is None and grad_rt is None:
             fwd_combined = fwd_x
         else:
@@ -192,13 +182,35 @@ class CompressorFunction(Function):
             fwd_combined = fwd_x + grad_beta * (
                 x - torch.cat([zi.unsqueeze(1), y[:, :-1]], dim=1)
             )
-
-        del ctx.x, ctx.y, ctx.zi, ctx.at, ctx.rt, ctx.at_mask
-        return sample_wise_lpc(
-            fwd_combined,
-            coeffs.unsqueeze(2) - 1,
-            grad_zi if grad_zi is None else grad_zi.unsqueeze(1),
+        return (
+            sample_wise_lpc(
+                fwd_combined,
+                coeffs.unsqueeze(2) - 1,
+                grad_zi if grad_zi is None else grad_zi.unsqueeze(1),
+            ),
+            None,
         )
 
+    @staticmethod
+    def vmap(info, in_dims, *args):
+        def maybe_expand_bdim_at_front(x, x_bdim):
+            if x_bdim is None:
+                return x.expand(info.batch_size, *x.shape)
+            return x.movedim(x_bdim, 0)
 
-compressor_core: Callable = CompressorFunction.apply
+        x, zi, at, rt = tuple(
+            map(
+                lambda x: x.reshape(-1, *x.shape[2:]),
+                map(maybe_expand_bdim_at_front, args, in_dims),
+            )
+        )
+
+        y, at_mask = CompressorFunction.apply(x, zi, at, rt)
+        return (
+            y.reshape(info.batch_size, -1, *y.shape[1:]),
+            at_mask.reshape(info.batch_size, -1, *at_mask.shape[1:]),
+        ), 0
+
+
+def compressor_core(*args, **kwargs) -> torch.Tensor:
+    return CompressorFunction.apply(*args, **kwargs)[0]
