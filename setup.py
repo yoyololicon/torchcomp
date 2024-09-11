@@ -19,7 +19,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/yoyololicon/torchcomp",
     packages=["torchcomp"],
-    install_requires=["torch", "torchaudio", "torchlpc", "numpy", "numba"],
+    install_requires=["torch>=2", "torchaudio", "torchlpc", "numpy", "numba"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
