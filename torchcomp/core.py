@@ -191,6 +191,26 @@ class CompressorFunction(Function):
             None,
         )
 
+    @staticmethod
+    def vmap(info, in_dims, *args):
+        def maybe_expand_bdim_at_front(x, x_bdim):
+            if x_bdim is None:
+                return x.expand(info.batch_size, *x.shape)
+            return x.movedim(x_bdim, 0)
+
+        x, zi, at, rt = tuple(
+            map(
+                lambda x: x.reshape(-1, *x.shape[2:]),
+                map(maybe_expand_bdim_at_front, args, in_dims),
+            )
+        )
+
+        y, at_mask = CompressorFunction.apply(x, zi, at, rt)
+        return (
+            y.reshape(info.batch_size, -1, *y.shape[1:]),
+            at_mask.reshape(info.batch_size, -1, *at_mask.shape[1:]),
+        ), 0
+
 
 def compressor_core(*args, **kwargs) -> torch.Tensor:
     return CompressorFunction.apply(*args, **kwargs)[0]
