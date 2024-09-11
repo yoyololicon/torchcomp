@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 from typing import Union
-from torchaudio.functional import lfilter
+from torchlpc import sample_wise_lpc
 
 from .core import compressor_core
 
@@ -88,11 +88,9 @@ def avg(rms: torch.Tensor, avg_coef: Union[torch.Tensor, float]):
     ).broadcast_to(rms.shape[0])
     assert torch.all(avg_coef > 0) and torch.all(avg_coef <= 1)
 
-    return lfilter(
-        rms,
-        torch.stack([torch.ones_like(avg_coef), avg_coef - 1], 1),
-        torch.stack([avg_coef, torch.zeros_like(avg_coef)], 1),
-        False,
+    return sample_wise_lpc(
+        rms * avg_coef,
+        avg_coef[:, None, None].broadcast_to(rms.shape + (1,)) - 1,
     )
 
 
